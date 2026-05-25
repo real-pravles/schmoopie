@@ -37,3 +37,4 @@ build/
 ### Mac OS ###
 .DS_Store
 .idea/
+/src/test/resources/.~lock.2026_05_24_map.fodp#

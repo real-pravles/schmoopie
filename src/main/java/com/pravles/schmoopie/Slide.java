@@ -19,8 +19,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.pravles.processengine.util;
+package com.pravles.schmoopie;
 
-public interface ProcessDefinition {
-    ProcessEngineLaunchInfo createLaunchInfo();
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@Builder
+public class Slide {
+    private String name;
+    private String title;
+    private List<String> linkedPageNames;
 }

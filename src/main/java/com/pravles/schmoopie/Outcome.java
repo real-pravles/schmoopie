@@ -19,18 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.pravles.processengine.util;
+package com.pravles.schmoopie;
 
 import lombok.Builder;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.InputStream;
 
 @Data
 @Builder
-public class PpmnDiagramInfo {
-    public static String ROOT = StringUtils.EMPTY;
-    private String diagramId;
-    private InputStream inputStream;
+public class Outcome {
+    private boolean valid;
+    private String message;
 }
