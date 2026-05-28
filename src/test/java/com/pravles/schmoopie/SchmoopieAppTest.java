@@ -22,7 +22,6 @@
 package com.pravles.schmoopie;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -31,17 +30,16 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.of;
 
 class SchmoopieAppTest {
@@ -58,11 +56,26 @@ class SchmoopieAppTest {
                         "schmoopie: Empty input",
                         ""),
                 of(
-                        "2026_05_24_map.fodp",
-                        new FileInputStream("src/test/resources/2026_05_24_map.fodp"),
-                        "",
-                        FileUtils.readFileToString(new File("src/test/resources/2026_05_24_map.fodp.out.org"), UTF_8) )
+                        "schmoopie: No root slide",
+                        new FileInputStream(
+                                "src/test/resources/no-root.fodp"),
+                        "schmoopie: No root slide",
+                        ""),
+                createPieceOfTestData("2026_05_24_map.fodp"),
+                createPieceOfTestData("2026_05_26_map.fodp")
         );
+    }
+
+    private static Arguments createPieceOfTestData(final String filename)
+            throws IOException {
+        return of(
+                filename,
+                new FileInputStream(format("src/test/resources/%s",
+                       filename)),
+                "",
+                readFileToString(new File(
+                        format("src/test/resources/%s.out.org",
+                                filename)), UTF_8));
     }
 
     @ParameterizedTest(name = "{0}")

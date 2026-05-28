@@ -32,4 +32,5 @@ public class Slide {
     private String name;
     private String title;
     private List<String> linkedPageNames;
+    private List<String> descriptions;
 }

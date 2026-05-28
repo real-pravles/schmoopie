@@ -21,6 +21,8 @@
 
 package com.pravles.schmoopie;
 
+import clojure.lang.Keyword;
+import com.pravles.processengine.impl.ShariysDog;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -32,6 +34,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -42,6 +45,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +60,13 @@ import static javax.xml.xpath.XPathConstants.NODESET;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 public class Fodp2Org implements BiFunction<String, PrintStream, String> {
+   private static final Keyword ADD = Keyword.intern("add");
+   private static final Keyword TODO = Keyword.intern("todo");
+
+    private static final Keyword WITH_TITLE = Keyword.intern("with-title");
+
+    private static final Keyword WITH_BODY = Keyword.intern("with-body");
+
     @Override
     public String apply(final String fodp,
                         final PrintStream err) {
@@ -95,6 +106,8 @@ public class Fodp2Org implements BiFunction<String, PrintStream, String> {
                 final Slide slide = slidesToProcess.poll();
                 processedSlideNames.add(trim(slide.getName()));
 
+                processDescriptiosn(sb, slide);
+
                 sb.append("** TODO ~");
                 sb.append(slide.getName());
                 sb.append("~: ");
@@ -130,6 +143,37 @@ public class Fodp2Org implements BiFunction<String, PrintStream, String> {
         }
     }
 
+    private void processDescriptiosn(final StringBuilder sb,
+                                     final Slide slide) {
+        final String descBasedActionItems = slide.getDescriptions()
+                .stream()
+                .map(descTxt -> (Map) ShariysDog.woof("txt-to-map", descTxt))
+                .map(map -> descriptionMapToTxt(map))
+                .collect(Collectors.joining(lineSeparator()));
+        sb.append(descBasedActionItems);
+    }
+
+    private String descriptionMapToTxt(final Map descMap) {
+        final Object type = descMap.get(ADD);
+        if (!TODO.equals(type)) {
+            return "";
+        }
+
+        final String title = (String) descMap.get(WITH_TITLE);
+        final List<String> body = (List<String>) descMap.getOrDefault(WITH_BODY, Collections.emptyList());
+        final String bodyTxt = body.stream()
+                .collect(Collectors.joining(lineSeparator()));
+
+        return String.format("** TODO %s%s<<n>>%s%s%s%s%s",
+                title,
+                lineSeparator(),
+                lineSeparator(),
+                lineSeparator(),
+                bodyTxt,
+                lineSeparator(),
+                lineSeparator());
+    }
+
     private List<Slide> extractSlides(final Document doc) throws XPathExpressionException {
         final XPathFactory xPathFactory = XPathFactory.newInstance();
         final XPath xPath = xPathFactory.newXPath();
@@ -137,7 +181,7 @@ public class Fodp2Org implements BiFunction<String, PrintStream, String> {
         final XPathExpression titleExpr = xPath.compile(
                 ".//*[local-name()='frame' and @*[local-name()='class']='title']" +
                         "//*[local-name()='p']");
-
+        final XPathExpression descExpr = xPath.compile(".//*[local-name()='desc']");
 
         final NodeList nodeList = (NodeList) pagesExpr.evaluate(doc,
                 NODESET);
@@ -148,15 +192,25 @@ public class Fodp2Org implements BiFunction<String, PrintStream, String> {
             final Node node = nodeList.item(i);
             final NamedNodeMap nnm = node.getAttributes();
             final String name = nnm.getNamedItem("draw:name").getNodeValue();
-            final boolean isRoot = "/".equals(trim(name));
 
             slides.add(Slide.builder()
                             .name(name)
                             .title(extractTitle(titleExpr, node))
                             .linkedPageNames(extractLinkedPages(node))
+                            .descriptions(extractDescriptions(descExpr, node))
                     .build());
         }
         return slides;
+    }
+
+    private List<String> extractDescriptions(XPathExpression descExpr, Node node)
+            throws XPathExpressionException {
+        final NodeList descs = (NodeList) descExpr.evaluate(node, XPathConstants.NODESET);
+        final List<String> result = new ArrayList<>(descs.getLength());
+        for (int i = 0; i < descs.getLength(); i++) {
+            result.add(descs.item(i).getTextContent());
+        }
+        return result;
     }
 
     private static List<String> extractLinkedPages(Node node) throws XPathExpressionException {

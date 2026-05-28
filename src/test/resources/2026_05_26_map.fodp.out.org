@@ -1,0 +1,17 @@
+** TODO Look at the review protocols directory
+<<n>>
+
+1. Go to ~~/dev/misc/intranet/protocols/reviews~
+2. Check whether or not you have done any reviews lately.
+3. If not, do one now.
+
+** TODO ~/~: Evaluate the state of control process "Game of Life"
+<<n>>
+
+** TODO ~w~: Evaluate the state of control process "Writing"
+
+** TODO ~ci~: Evaluate the state of control process "Continuous Improvement"
+
+** TODO ~w.fr~: Evaluate the state of control process "Finding Readers"
+
+** TODO ~ci.ci-2026-05-16~: Evaluate the state of control process "CI-2026-05-16"
